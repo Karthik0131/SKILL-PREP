@@ -4,6 +4,9 @@ import cors from "cors";
 import connectDB from "./config/db.js"; // Import database connection
 import quizRoutes from "./routes/quizRoutes.js"; // Import quiz routes
 import questionRoutes from "./routes/questionRoutes.js"; // Import question routes
+import studentRoutes from "./routes/studentRoutes.js"; // Import student routes
+import analysisRoutes from "./routes/analysisRoutes.js"; // Import analysis routes
+
 
 dotenv.config(); // Load environment variables
 
@@ -19,6 +22,9 @@ connectDB();
 // Routes
 app.use("/api/quizzes", quizRoutes); // Quiz Routes
 app.use("/api/questions", questionRoutes); // Question Routes
+app.use("/api/students", studentRoutes); // Student Routes
+app.use("/api/analysis", analysisRoutes); // Analysis Routes
+
 
 // Basic API Route
 app.get("/", (req, res) => {

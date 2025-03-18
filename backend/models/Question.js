@@ -1,32 +1,33 @@
 const mongoose = require("mongoose");
 
-const questionSchema = new mongoose.Schema({
+const QuestionSchema = new mongoose.Schema({
   quizId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Quiz",
-    required: true, // Ensures each question belongs to a quiz
+    ref: "Quiz", // References the Quiz model
+    required: true,
   },
   questionText: {
     type: String,
     required: true,
   },
-  options: {
-    type: [String], // Array of 4 options
-    validate: {
-      validator: function (arr) {
-        return arr.length === 4; // Ensures exactly 4 options
-      },
-      message: "A question must have exactly 4 options.",
+  options: [
+    {
+      type: String,
+      required: true,
     },
-    required: true,
-  },
+  ],
   correctOption: {
-    type: String,
+    type: Number, // Index of the correct option (0, 1, 2, or 3 for MCQs)
     required: true,
   },
   explanation: {
-    type: String, // Optional field to explain the correct answer
+    type: String, // Explanation for the correct answer
     default: "",
+  },
+  marks: {
+    type: Number, // Marks assigned for this question
+    required: true,
+    default: 1,
   },
   createdAt: {
     type: Date,
@@ -34,5 +35,6 @@ const questionSchema = new mongoose.Schema({
   },
 });
 
-const Question = mongoose.model("Question", questionSchema);
+const Question = mongoose.models.Question || mongoose.model("Question", QuestionSchema);
+
 module.exports = Question;

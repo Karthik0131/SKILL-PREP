@@ -1,31 +1,31 @@
 const express = require("express");
-const {
-  createQuestion,
-  getQuestionById,
-  getQuestionsByQuizId,
-  updateQuestion,
+const { 
+  createQuestion, 
+  createQuestionsBulk,
+  getQuestionById, 
+  updateQuestion, 
   deleteQuestion,
-  deleteQuestionsByQuizId,
+  deleteQuestionsByQuizId
 } = require("../controllers/questionController");
 
 const router = express.Router();
 
-// 🟢 Create a new question (Requires quizId)
+// 1️⃣ Create a new question for a quiz
 router.post("/", createQuestion);
 
-// 🔵 Get a specific question by ID
+// 2️⃣ Bulk upload questions for a quiz
+router.post("/bulk", createQuestionsBulk);
+
+// 3️⃣ Fetch a specific question by ID
 router.get("/:id", getQuestionById);
 
-// 🟡 Get all questions for a quiz using query parameter (?quizId=xyz)
-router.get("/", getQuestionsByQuizId);
-
-// 🟣 Update a question
+// 4️⃣ Update a question by ID
 router.put("/:id", updateQuestion);
 
-// 🔴 Delete a single question
+// 5️⃣ Delete a question by ID
 router.delete("/:id", deleteQuestion);
 
-// ⚫ Delete all questions for a specific quiz using query parameter (?quizId=xyz)
-router.delete("/", deleteQuestionsByQuizId);
+// 6️⃣ Delete all questions for a specific quiz
+router.delete("/quiz/:quizId", deleteQuestionsByQuizId);
 
 module.exports = router;

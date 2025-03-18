@@ -1,109 +1,115 @@
-const Quiz = require("../models/quiz");
-const Question = require("../models/question");
+const Quiz = require("../models/Quiz");
+const Question = require("../models/Question");
 
-// 🟢 Create a Quiz
+// Step 1: Create a new quiz
 exports.createQuiz = async (req, res) => {
   try {
-    const { title, category, subcategory, timeLimit } = req.body;
+    const { title, category, subcategory, timeLimit, resources } = req.body;
 
-    // Validate request body
+    // Validate input
     if (!title || !category || !timeLimit) {
-      return res.status(400).json({ error: "Title, category, and time limit are required." });
+      return res.status(400).json({ message: "Title, category, and time limit are required" });
     }
 
-    // Create a new quiz
-    const newQuiz = new Quiz({ title, category, subcategory, timeLimit });
-    await newQuiz.save();
+    const newQuiz = new Quiz({
+      title,
+      category,
+      subcategory: subcategory || null,
+      timeLimit,
+      resources: resources || [],
+    });
 
+    await newQuiz.save();
     res.status(201).json(newQuiz);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create quiz", details: error.message });
+    console.error("Error creating quiz:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// 🔵 Get All Quizzes
+// Step 2: Fetch all quizzes
 exports.getAllQuizzes = async (req, res) => {
   try {
     const quizzes = await Quiz.find();
     res.status(200).json(quizzes);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch quizzes", details: error.message });
+    console.error("Error fetching quizzes:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// 🟡 Get a Single Quiz (Without Questions)
+// Step 3: Fetch a specific quiz by ID
 exports.getQuizById = async (req, res) => {
   try {
     const { id } = req.params;
     const quiz = await Quiz.findById(id);
-    console.log(id);
+
     if (!quiz) {
-      return res.status(404).json({ error: "Quiz not found" });
+      return res.status(404).json({ message: "Quiz not found" });
     }
 
     res.status(200).json(quiz);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch quiz", details: error.message });
+    console.error("Error fetching quiz:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// 🟠 Get a Quiz with Questions (Populated)
-exports.getQuizWithQuestions = async (req, res) => {
-    try {
-        const quiz = await Quiz.findById(req.params.id);
-    
-        if (!quiz) {
-          return res.status(404).json({ message: "Quiz not found" });
-        }
-    
-        // Fetch all questions related to this quiz
-        const questions = await Question.find({ quizId: quiz._id });
-    
-        res.status(200).json({ ...quiz.toObject(), questions }); // Merge quiz and questions
-      } catch (error) {
-        res.status(500).json({ message: "Server Error", error: error.message });
-      }
-};
-
-// 🟣 Update a Quiz
+// Step 4: Update quiz details
 exports.updateQuiz = async (req, res) => {
   try {
-    const { id } = req.params; // Get quiz ID from URL
-    const { title, category, subcategory, timeLimit } = req.body; // Get new values
+    const { id } = req.params;
+    const { title, category, subcategory, timeLimit, resources } = req.body;
 
     const updatedQuiz = await Quiz.findByIdAndUpdate(
       id,
-      { title, category, subcategory, timeLimit },
-      { new: true, runValidators: true } // Ensure it returns updated object
+      { title, category, subcategory, timeLimit, resources },
+      { new: true }
     );
 
     if (!updatedQuiz) {
       return res.status(404).json({ message: "Quiz not found" });
     }
 
-    res.json(updatedQuiz);
+    res.status(200).json(updatedQuiz);
   } catch (error) {
-    res.status(500).json({ error: "Failed to update quiz", details: error.message });
+    console.error("Error updating quiz:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// 🔴 Delete a Quiz (and its questions)
+// Step 5: Delete a quiz
 exports.deleteQuiz = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Delete all questions related to the quiz
-    await Question.deleteMany({ id });
-
-    // Delete the quiz
     const deletedQuiz = await Quiz.findByIdAndDelete(id);
 
     if (!deletedQuiz) {
-      return res.status(404).json({ error: "Quiz not found" });
+      return res.status(404).json({ message: "Quiz not found" });
     }
 
-    res.status(200).json({ message: "Quiz and associated questions deleted successfully." });
+    res.status(200).json({ message: "Quiz deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete quiz", details: error.message });
+    console.error("Error deleting quiz:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Fetch all questions for a specific quiz
+exports.getQuestionsForQuiz = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find all questions linked to this quiz ID
+    const questions = await Question.find({ quizId: id });
+
+    if (!questions.length) {
+      return res.status(404).json({ message: "No questions found for this quiz" });
+    }
+
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

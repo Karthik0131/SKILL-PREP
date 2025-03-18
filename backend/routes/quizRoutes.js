@@ -3,29 +3,28 @@ const {
   createQuiz,
   getAllQuizzes,
   getQuizById,
-  getQuizWithQuestions,
   updateQuiz,
   deleteQuiz,
+  getQuestionsForQuiz
 } = require("../controllers/quizController");
 
 const router = express.Router();
 
-// 🟢 Create a Quiz
+// Step 1: Create a new quiz
 router.post("/", createQuiz);
 
-// 🔵 Get All Quizzes
+// Step 2: Fetch all quizzes
 router.get("/", getAllQuizzes);
 
-// 🟡 Get a Single Quiz (Without Questions)
+// Step 3: Fetch a specific quiz by ID
 router.get("/:id", getQuizById);
 
-// 🟠 Get a Quiz with Questions (Populated)
-router.get("/:id/full", getQuizWithQuestions);
-
-// 🟣 Update a Quiz
+// Step 4: Update quiz details
 router.put("/:id", updateQuiz);
 
-// 🔴 Delete a Quiz (and its questions)
+// Step 5: Delete a quiz
 router.delete("/:id", deleteQuiz);
+
+router.get("/:id/questions", getQuestionsForQuiz);
 
 module.exports = router;

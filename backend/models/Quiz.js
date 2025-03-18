@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const quizSchema = new mongoose.Schema({
+const QuizSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -15,14 +15,27 @@ const quizSchema = new mongoose.Schema({
     default: null,
   },
   timeLimit: {
-    type: Number, // Time in minutes
+    type: Number, // Time limit in minutes
     required: true,
   },
+  questions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Question",
+    },
+  ],
+  resources: [
+    {
+      minScore: { type: Number, required: true }, // Minimum score range
+      maxScore: { type: Number, required: true }, // Maximum score range
+      recommendation: { type: String, required: true }, // Recommendation text
+      resourceLink: { type: String, required: true }, // URL to the study material
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-const Quiz = mongoose.model("Quiz", quizSchema);
-module.exports = Quiz;
+module.exports = mongoose.model("Quiz", QuizSchema);

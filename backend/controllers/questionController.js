@@ -1,119 +1,103 @@
-const Question = require("../models/question");
-const mongoose = require("mongoose");
-// 🟢 Create a new question (Requires quizId)
+const Question = require("../models/Question");
+
+// 1️⃣ Create a new question for a quiz
 const createQuestion = async (req, res) => {
   try {
-    const { quizId, questionText, options, correctOption, explanation } = req.body;
+    const { quizId, questionText, options, correctOption, explanation, marks } = req.body;
 
-    if (!quizId || !questionText || !options || !correctOption) {
-      return res.status(400).json({ message: "Missing required fields." });
+    if (!quizId || !questionText || !options || correctOption === undefined) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const newQuestion = new Question({
-      quizId,
-      questionText,
-      options,
-      correctOption,
-      explanation,
-    });
+    const question = new Question({ quizId, questionText, options, correctOption, explanation, marks });
+    await question.save();
 
-    await newQuestion.save();
-    res.status(201).json(newQuestion);
+    res.status(201).json(question);
   } catch (error) {
-    res.status(500).json({ message: "Error creating question", error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 🔵 Get a specific question by ID
+// 2️⃣ Bulk upload questions for a quiz
+const createQuestionsBulk = async (req, res) => {
+  try {
+    const { questions } = req.body;
+
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ error: "Invalid questions array" });
+    }
+
+    const createdQuestions = await Question.insertMany(questions);
+    res.status(201).json({ message: "Questions added successfully", data: createdQuestions });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 3️⃣ Fetch a specific question by ID
 const getQuestionById = async (req, res) => {
   try {
-    const question = await Question.findById(req.params.id);
+    const { id } = req.params;
+    const question = await Question.findById(id);
+
     if (!question) {
-      return res.status(404).json({ message: "Question not found" });
+      return res.status(404).json({ error: "Question not found" });
     }
+
     res.json(question);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching question", error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 🟡 Get all questions for a quiz using query parameter (?quizId=xyz)
-const getQuestionsByQuizId = async (req, res) => {
-  try {
-    const { quizId } = req.query;
-    if (!quizId) {
-      return res.status(400).json({ message: "quizId query parameter is required." });
-    }
-
-    const questions = await Question.find({ quizId });
-    res.json(questions);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching questions", error: error.message });
-  }
-};
-
-// 🟣 Update a question
+// 4️⃣ Update a question by ID
 const updateQuestion = async (req, res) => {
   try {
-    const { questionText, options, correctOption, explanation } = req.body;
-
-    const updatedQuestion = await Question.findByIdAndUpdate(
-      req.params.id,
-      { questionText, options, correctOption, explanation },
-      { new: true, runValidators: true }
-    );
+    const { id } = req.params;
+    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, { new: true });
 
     if (!updatedQuestion) {
-      return res.status(404).json({ message: "Question not found" });
+      return res.status(404).json({ error: "Question not found" });
     }
 
     res.json(updatedQuestion);
   } catch (error) {
-    res.status(500).json({ message: "Error updating question", error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// 🔴 Delete a single question
+// 5️⃣ Delete a question by ID
 const deleteQuestion = async (req, res) => {
   try {
-    const deletedQuestion = await Question.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    const deletedQuestion = await Question.findByIdAndDelete(id);
+
     if (!deletedQuestion) {
-      return res.status(404).json({ message: "Question not found" });
+      return res.status(404).json({ error: "Question not found" });
     }
+
     res.json({ message: "Question deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting question", error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// ⚫ Delete all questions for a specific quiz using query parameter (?quizId=xyz)
+// 6️⃣ Delete all questions for a specific quiz
 const deleteQuestionsByQuizId = async (req, res) => {
   try {
-    const { quizId } = req.query;
-    
-    if (!quizId) {
-      return res.status(400).json({ message: "quizId query parameter is required." });
-    }
+    const { quizId } = req.params;
+    await Question.deleteMany({ quizId });
 
-    // Convert quizId string to ObjectId
-    const objectIdQuizId = new mongoose.Types.ObjectId(quizId);
-
-    const result = await Question.deleteMany({ quizId: objectIdQuizId });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "No questions found for this quiz." });
-    }
-
-    res.json({ message: `${result.deletedCount} questions deleted successfully` });
+    res.json({ message: "All questions for the quiz deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting questions", error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
 module.exports = {
   createQuestion,
+  createQuestionsBulk,
   getQuestionById,
-  getQuestionsByQuizId,
   updateQuestion,
   deleteQuestion,
   deleteQuestionsByQuizId,
