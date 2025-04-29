@@ -7,18 +7,26 @@ const StudentSchema = new mongoose.Schema({
 
   quizAttempts: [
     {
-      quizId: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz", required: true },
+      quizId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Quiz",
+        required: true,
+      },
       score: { type: Number, required: true },
       attemptedAt: { type: Date, default: Date.now },
       timeTaken: { type: Number, required: true }, // Time taken in seconds
       responses: [
         {
-          questionId: { type: mongoose.Schema.Types.ObjectId, ref: "Question", required: true },
+          questionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Question",
+            required: true,
+          },
           selectedOption: { type: Number, required: true }, // Stores index of selected option (0,1,2,3)
           isCorrect: { type: Boolean, required: true },
-        }
+        },
       ],
-    }
+    },
   ],
 
   performance: {
@@ -26,10 +34,27 @@ const StudentSchema = new mongoose.Schema({
     strongAreas: { type: Map, of: Number, default: {} }, // Example: { "Algorithms": 90, "Verbal": 80 }
   },
 
+  // ✅ New Field: Store All Personalized Resources
+  personalizedResources: [
+    {
+      quizId: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }, // Links the resource to a quiz
+      category: String,
+      subcategory: String,
+      recommendation: String,
+      resourceLink: String,
+      // Unique ID for resource
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: () => new mongoose.Types.ObjectId(),
+      },
+      isCompleted: { type: Boolean, default: false },
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
-const Student = mongoose.models.Student || mongoose.model("Student", StudentSchema);
+const Student =
+  mongoose.models.Student || mongoose.model("Student", StudentSchema);
 
 module.exports = Student;

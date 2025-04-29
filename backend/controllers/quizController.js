@@ -8,7 +8,9 @@ exports.createQuiz = async (req, res) => {
 
     // Validate input
     if (!title || !category || !timeLimit) {
-      return res.status(400).json({ message: "Title, category, and time limit are required" });
+      return res
+        .status(400)
+        .json({ message: "Title, category, and time limit are required" });
     }
 
     const newQuiz = new Quiz({
@@ -100,14 +102,34 @@ exports.getQuestionsForQuiz = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Fetch quiz details along with questions
+    const quiz = await Quiz.findById(id).select(
+      "title category subcategory timeLimit"
+    );
+
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
     // Find all questions linked to this quiz ID
     const questions = await Question.find({ quizId: id });
 
     if (!questions.length) {
-      return res.status(404).json({ message: "No questions found for this quiz" });
+      return res.status(200).json({
+        quizDetails: quiz, // Send quiz details
+        questions: [], // Return empty questions array instead of 404
+        timeLimit: quiz.timeLimit,
+      });
     }
 
-    res.status(200).json(questions);
+    const totalMarks = questions.reduce((sum, q) => sum + (q.marks || 0), 0);
+
+    res.status(200).json({
+      quizDetails: quiz, // Send quiz title, category, and subcategory
+      questions,
+      totalMarks, // Optional: If needed in frontend
+      timeLimit: quiz.timeLimit,
+    });
   } catch (error) {
     console.error("Error fetching questions:", error);
     res.status(500).json({ message: "Internal server error" });

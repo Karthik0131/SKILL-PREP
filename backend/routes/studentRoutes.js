@@ -18,6 +18,14 @@ router.get("/:rollno/performance", studentController.getStudentPerformance);
 router.get("/:rollno/quiz-history", studentController.getQuizHistory);
 
 // Fetch study resources based on **student's quiz score**
-router.get("/:rollno/recommendations", studentController.getStudyRecommendations);
+router.get(
+  "/:rollno/recommendations",
+  studentController.getStudyRecommendations
+);
 
+// Update resource completion
+router.patch(
+  "/:rollNumber/resources/:resourceId",
+  studentController.updateResourceCompletion
+);
 module.exports = router;

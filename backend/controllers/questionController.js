@@ -1,19 +1,33 @@
 const Question = require("../models/Question");
+const Quiz = require("../models/Quiz"); // Ensure Quiz model is imported
 
 // 1️⃣ Create a new question for a quiz
 const createQuestion = async (req, res) => {
   try {
-    const { quizId, questionText, options, correctOption, explanation, marks } = req.body;
+    const { quizId, questionText, options, correctOption, explanation, marks } =
+      req.body;
 
     if (!quizId || !questionText || !options || correctOption === undefined) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const question = new Question({ quizId, questionText, options, correctOption, explanation, marks });
+    const question = new Question({
+      quizId,
+      questionText,
+      options,
+      correctOption,
+      explanation,
+      marks,
+    });
     await question.save();
+    // Push question ID to quiz
+    await Quiz.findByIdAndUpdate(quizId, {
+      $push: { questions: question._id },
+    });
 
     res.status(201).json(question);
   } catch (error) {
+    console.error("Error creating question:", error); // Enhanced logging
     res.status(500).json({ error: error.message });
   }
 };
@@ -28,7 +42,10 @@ const createQuestionsBulk = async (req, res) => {
     }
 
     const createdQuestions = await Question.insertMany(questions);
-    res.status(201).json({ message: "Questions added successfully", data: createdQuestions });
+    res.status(201).json({
+      message: "Questions added successfully",
+      data: createdQuestions,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -54,7 +71,9 @@ const getQuestionById = async (req, res) => {
 const updateQuestion = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     if (!updatedQuestion) {
       return res.status(404).json({ error: "Question not found" });

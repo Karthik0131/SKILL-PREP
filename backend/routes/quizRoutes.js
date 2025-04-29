@@ -5,7 +5,7 @@ const {
   getQuizById,
   updateQuiz,
   deleteQuiz,
-  getQuestionsForQuiz
+  getQuestionsForQuiz,
 } = require("../controllers/quizController");
 
 const router = express.Router();
@@ -25,6 +25,7 @@ router.put("/:id", updateQuiz);
 // Step 5: Delete a quiz
 router.delete("/:id", deleteQuiz);
 
+// Step 6: Fetch questions for a specific quiz
 router.get("/:id/questions", getQuestionsForQuiz);
 
 module.exports = router;
